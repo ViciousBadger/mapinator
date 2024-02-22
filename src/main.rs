@@ -1,3 +1,4 @@
+use clap::Parser;
 use gray_matter::{engine::YAML, Matter};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -24,13 +25,15 @@ struct Entry {
     content: String,
 }
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Args {
+    path: Option<String>,
+}
+
 fn main() -> tera::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-    let path = if args.len() > 1 {
-        args[1].clone()
-    } else {
-        ".".to_string()
-    };
+    let args = Args::parse();
+    let path = args.path.unwrap_or(".".to_string());
 
     println!("Reading .md files in '{}'...", path);
 
