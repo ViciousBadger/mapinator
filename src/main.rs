@@ -43,8 +43,10 @@ fn main() -> Result<()> {
 
     let filtered_files = WalkDir::new(path)
         .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|f| f.file_type().is_file() && f.path().extension().is_some_and(|ext| ext == "md"));
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| {
+            entry.file_type().is_file() && entry.path().extension().is_some_and(|ext| ext == "md")
+        });
 
     fn try_parse(file: &DirEntry) -> Result<Entry, Report> {
         let str = std::fs::read_to_string(file.path())?;
@@ -85,7 +87,9 @@ fn main() -> Result<()> {
 
     let data = Data { entries };
 
-    if data.entries.len() > 0 {
+    if data.entries.is_empty() {
+        println!("No valid entries found, doing nothing.");
+    } else {
         let mut tera = Tera::default();
         tera.add_raw_template("template", include_str!("./template.html"))?;
 
@@ -100,8 +104,6 @@ fn main() -> Result<()> {
             &outfile.blue(),
             &data.entries.len()
         );
-    } else {
-        println!("No valid entries found, doing nothing.");
     }
     Ok(())
 }
